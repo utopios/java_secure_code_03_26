@@ -23,13 +23,15 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 // --- RBAC : contrôle d'accès basé sur les rôles ---
+                // --- Principe du moindre privilège : tout est interdit par défaut ---
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/superadmin/**").hasRole("SUPER_ADMIN")
                         .requestMatchers("/api/transactions/critical/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         .requestMatchers("/api/transactions/**").authenticated()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/api/account/**").authenticated()
+                        .anyRequest().denyAll()
                 )
 
                 // --- Protection CSRF ---
