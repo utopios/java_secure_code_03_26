@@ -25,7 +25,9 @@ public class CryptographyFullDemo {
 
     public static void main(String[] args) throws Exception {
         //partie1_SymetriqueVsAsymetrique();
-        partie2_ECB_PingouinDemo();
+        //partie2_ECB_PingouinDemo();
+        //partie3_AES_GCM();
+        partie4_IV_Role_Et_Unicite();
     }
 
     private static void partie1_SymetriqueVsAsymetrique() throws Exception {
@@ -151,6 +153,205 @@ public class CryptographyFullDemo {
         System.out.println("  PIEGE JAVA :");
         System.out.println("    Cipher.getInstance(\"AES\")  --> utilise ECB par DEFAUT !");
         System.out.println("    C'est pour cela que SonarQube le flag systematiquement.");
+        System.out.println();
+    }
+
+    private static void partie3_AES_GCM() throws Exception {
+        printSection("PARTIE 3 : AES-GCM - CHIFFREMENT AUTHENTIFIE (CONFIDENTIALITE + INTEGRITE)");
+
+        System.out.println("  GCM = Galois/Counter Mode");
+        System.out.println("  Fournit 3 garanties en UNE seule operation (AEAD) :");
+        System.out.println("    1. Confidentialite - les donnees sont illisibles sans la cle");
+        System.out.println("    2. Integrite       - toute modification est detectee");
+        System.out.println("    3. Authenticite    - seul le detenteur de la cle a pu produire ce chiffre");
+        System.out.println();
+
+        // Generer une cle AES-256
+        KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+        keyGen.init(AES_KEY_SIZE);
+        SecretKey key = keyGen.generateKey();
+        System.out.println("  Cle AES-" + AES_KEY_SIZE + " generee : " + bytesToHex(key.getEncoded()).substring(0, 32) + "...");
+
+        // Generer un IV de 12 octets
+        byte[] iv = new byte[GCM_IV_LENGTH];
+        new SecureRandom().nextBytes(iv);
+        System.out.println("  IV (12 octets)    : " + bytesToHex(iv));
+        System.out.println();
+
+        // --- Chiffrement ---
+        String plaintext = "Numero de carte bancaire : 4532-XXXX-XXXX-1234";
+        System.out.println("  Texte en clair : \"" + plaintext + "\"");
+        System.out.println();
+
+        GCMParameterSpec gcmSpec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        cipher.init(Cipher.ENCRYPT_MODE, key, gcmSpec);
+
+        // AAD = Associated Authenticated Data (en clair, mais authentifie)
+        String aad = "userId=42;operation=payment";
+        cipher.updateAAD(aad.getBytes());
+        System.out.println("  AAD (Associated Authenticated Data) : \"" + aad + "\"");
+        System.out.println("  --> Ces donnees ne sont PAS chiffrees, mais leur integrite est verifiee.");
+        System.out.println();
+
+        byte[] ciphertext = cipher.doFinal(plaintext.getBytes());
+        System.out.println("  Chiffre (hex) : " + bytesToHex(ciphertext));
+        System.out.println("  Taille clair  : " + plaintext.getBytes().length + " octets");
+        System.out.println("  Taille chiffre: " + ciphertext.length + " octets (+" + GCM_TAG_LENGTH / 8 + " octets pour le tag)");
+        System.out.println();
+
+        // --- Dechiffrement normal ---
+        System.out.println("  --- Dechiffrement normal ---");
+        Cipher decryptCipher = Cipher.getInstance("AES/GCM/NoPadding");
+        decryptCipher.init(Cipher.DECRYPT_MODE, key, gcmSpec);
+        decryptCipher.updateAAD(aad.getBytes()); // meme AAD obligatoire
+        byte[] decrypted = decryptCipher.doFinal(ciphertext);
+        System.out.println("  Resultat : \"" + new String(decrypted) + "\"");
+        System.out.println();
+
+        // --- Demo de l'integrite : alterer 1 octet ---
+        System.out.println("  --- Demo de l'integrite : alteration d'1 seul octet ---");
+        byte[] tampered = ciphertext.clone();
+        tampered[0] ^= 0x01; // alterer 1 seul bit
+
+        try {
+            Cipher tamperCipher = Cipher.getInstance("AES/GCM/NoPadding");
+            tamperCipher.init(Cipher.DECRYPT_MODE, key, gcmSpec);
+            tamperCipher.updateAAD(aad.getBytes());
+            tamperCipher.doFinal(tampered);
+            System.out.println("  ERREUR : le dechiffrement n'aurait pas du reussir !");
+        } catch (javax.crypto.AEADBadTagException e) {
+            System.out.println("  Exception levee : " + e.getClass().getSimpleName());
+            System.out.println("  --> GCM a detecte l'alteration ! Les donnees sont rejetees.");
+            System.out.println("  --> Avec CBC simple (sans HMAC), cette alteration passerait inapercue.");
+        }
+        System.out.println();
+
+        // --- Demo de l'AAD : modifier l'AAD ---
+        System.out.println("  --- Demo de l'AAD : modifier les donnees associees ---");
+        try {
+            Cipher aadCipher = Cipher.getInstance("AES/GCM/NoPadding");
+            aadCipher.init(Cipher.DECRYPT_MODE, key, gcmSpec);
+            aadCipher.updateAAD("userId=99;operation=payment".getBytes()); // AAD modifie !
+            aadCipher.doFinal(ciphertext);
+            System.out.println("  ERREUR : le dechiffrement n'aurait pas du reussir !");
+        } catch (javax.crypto.AEADBadTagException e) {
+            System.out.println("  Exception levee : " + e.getClass().getSimpleName());
+            System.out.println("  --> L'attaquant a tente de changer userId de 42 a 99.");
+            System.out.println("  --> GCM l'a detecte : l'AAD fait partie du calcul du tag.");
+            System.out.println("  --> Cas d'usage : empecher un utilisateur de rejouer un paiement");
+            System.out.println("      sur un autre compte en modifiant le header.");
+        }
+        System.out.println();
+    }
+
+    private static void partie4_IV_Role_Et_Unicite() throws Exception {
+        printSection("PARTIE 4 : IV (INITIALIZATION VECTOR) - ROLE, TAILLE, UNICITE");
+
+        System.out.println("  L'IV garantit que chiffrer le MEME message deux fois avec la MEME cle");
+        System.out.println("  produit deux resultats DIFFERENTS.");
+        System.out.println();
+        System.out.println("  Specifications pour AES-GCM :");
+        System.out.println("    - Taille          : 12 octets (96 bits) - recommandation NIST");
+        System.out.println("    - Unicite         : OBLIGATOIRE - ne jamais reutiliser avec la meme cle");
+        System.out.println("    - Confidentialite : PAS necessaire - peut etre transmis en clair");
+        System.out.println();
+
+        // Generer une cle
+        KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+        keyGen.init(AES_KEY_SIZE);
+        SecretKey key = keyGen.generateKey();
+
+        String message = "Message secret identique";
+
+        // --- Demo : meme message, meme cle, IV differents ---
+        System.out.println("  --- Meme message, meme cle, IV differents ---");
+        System.out.println("  Message : \"" + message + "\"");
+        System.out.println();
+
+        for (int i = 1; i <= 3; i++) {
+            byte[] iv = new byte[GCM_IV_LENGTH];
+            new SecureRandom().nextBytes(iv);
+
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(GCM_TAG_LENGTH, iv));
+            byte[] encrypted = cipher.doFinal(message.getBytes());
+
+            System.out.println("  Chiffrement #" + i + " :");
+            System.out.println("    IV      : " + bytesToHex(iv));
+            System.out.println("    Chiffre : " + bytesToHex(encrypted).substring(0, 40) + "...");
+        }
+        System.out.println("  --> Trois resultats DIFFERENTS grace aux IV differents.");
+        System.out.println("  --> Sans IV, un attaquant verrait que c'est le meme message.");
+        System.out.println();
+
+        // --- Pourquoi exactement 12 octets ? ---
+        System.out.println("  --- Pourquoi exactement 12 octets pour GCM ? ---");
+        System.out.println("  - 12 octets est la taille OPTIMISEE : l'IV est directement utilise");
+        System.out.println("    comme valeur initiale du compteur CTR.");
+        System.out.println("  - Avec une autre taille, GCM doit d'abord hasher l'IV via GHASH,");
+        System.out.println("    ce qui est plus lent et legerement moins sur.");
+        System.out.println("  - Avec 12 octets et SecureRandom, la probabilite de collision");
+        System.out.println("    est negligeable pour ~2^48 messages (des milliards de milliards).");
+        System.out.println();
+
+        // --- DANGER : reutilisation d'IV ---
+        System.out.println("  --- DANGER : Reutilisation du meme IV avec la meme cle ---");
+        System.out.println();
+
+        byte[] fixedIv = new byte[GCM_IV_LENGTH];
+        new SecureRandom().nextBytes(fixedIv);
+
+        String message1 = "Transfert : 1000 EUR";
+        String message2 = "Transfert : 9999 EUR";
+
+        // Chiffrer les deux messages avec le MEME IV (INTERDIT !)
+        Cipher c1 = Cipher.getInstance("AES/GCM/NoPadding");
+        c1.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(GCM_TAG_LENGTH, fixedIv));
+        byte[] enc1 = c1.doFinal(message1.getBytes());
+
+        Cipher c2 = Cipher.getInstance("AES/GCM/NoPadding");
+        c2.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(GCM_TAG_LENGTH, fixedIv));
+        byte[] enc2 = c2.doFinal(message2.getBytes());
+
+        // XOR des deux chiffres = XOR des deux clairs !
+        System.out.println("  Message 1 : \"" + message1 + "\"");
+        System.out.println("  Message 2 : \"" + message2 + "\"");
+        System.out.println("  MEME IV utilise pour les deux : " + bytesToHex(fixedIv));
+        System.out.println();
+
+        int minLen = Math.min(enc1.length, enc2.length);
+        minLen = Math.min(minLen, Math.min(message1.length(), message2.length()));
+        byte[] xorCiphertexts = new byte[minLen];
+        byte[] xorPlaintexts = new byte[minLen];
+
+        for (int i = 0; i < minLen; i++) {
+            xorCiphertexts[i] = (byte) (enc1[i] ^ enc2[i]);
+            xorPlaintexts[i] = (byte) (message1.getBytes()[i] ^ message2.getBytes()[i]);
+        }
+
+        System.out.println("  XOR des chiffres  : " + bytesToHex(xorCiphertexts));
+        System.out.println("  XOR des clairs    : " + bytesToHex(xorPlaintexts));
+        System.out.println("  Identiques ?      : " + Arrays.equals(xorCiphertexts, xorPlaintexts));
+        System.out.println();
+        System.out.println("  --> Le XOR des chiffres REVELE le XOR des clairs !");
+        System.out.println("  --> Si l'attaquant connait un des deux messages (known-plaintext),");
+        System.out.println("      il peut retrouver l'autre par simple XOR.");
+        System.out.println("  --> C'est EXACTEMENT le bug qui a casse le chiffrement de la PS3");
+        System.out.println("      par Sony en 2010 (reutilisation du meme 'random' pour ECDSA).");
+        System.out.println();
+
+        // --- Bonne pratique : generation de l'IV ---
+        System.out.println("  --- Bonne pratique Java ---");
+        System.out.println("  // CORRECT : toujours utiliser SecureRandom");
+        System.out.println("  byte[] iv = new byte[12];");
+        System.out.println("  new SecureRandom().nextBytes(iv);");
+        System.out.println();
+        System.out.println("  // INTERDIT : Random n'est pas cryptographiquement sur");
+        System.out.println("  // new Random().nextBytes(iv);  --> predictible !");
+        System.out.println();
+        System.out.println("  // STOCKAGE : IV transmis en clair, concatene devant le chiffre");
+        System.out.println("  // [IV: 12 octets][Ciphertext][Tag: 16 octets]");
         System.out.println();
     }
 
