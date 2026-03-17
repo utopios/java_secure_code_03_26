@@ -20,6 +20,7 @@ public class AuthService {
         this.doctorRepository = doctorRepository;
     }
 
+    // Injection SQL
     public Doctor authenticate(String username, String password) throws Exception {
         String hashedPassword = hashPassword(password);
         String jpql = "SELECT d FROM Doctor d WHERE d.username = '" + username
@@ -32,10 +33,12 @@ public class AuthService {
     }
 
     public Doctor register(String username, String password, String fullName, String specialty) throws Exception {
+        //Hash password => CRITIQUE
         Doctor doctor = new Doctor(username, hashPassword(password), fullName, specialty, "DOCTOR");
         return doctorRepository.save(doctor);
     }
 
+    // Soucis d'autnetification => CRITIQUE avec SHA-256, sans salt, et sans itérations => facile à cracker avec des attaques par dictionnaire ou rainbow tables
     private String hashPassword(String password) throws Exception {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         byte[] hash = md.digest(password.getBytes());

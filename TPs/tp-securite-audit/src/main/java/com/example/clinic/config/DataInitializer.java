@@ -62,6 +62,7 @@ public class DataInitializer implements CommandLineRunner {
         prescriptionRepository.save(rx2);
     }
 
+    // Soucis d'autnetification => CRITIQUE avec SHA-256, sans salt, et sans itérations => facile à cracker avec des attaques par dictionnaire ou rainbow tables
     private String hashPassword(String password) throws Exception {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         byte[] hash = md.digest(password.getBytes());

@@ -25,11 +25,13 @@ public class AuthController {
         Doctor doctor = authService.authenticate(username, password);
 
         if (doctor == null) {
+            // Information d'identification dans la réponse
             return ResponseEntity.status(401).body(Map.of(
                 "error", "Utilisateur " + username + " non trouve ou mot de passe incorrect"
             ));
         }
-
+        // Information d'identification dans les logs 
+        
         System.out.println("Login reussi pour " + username + " avec mot de passe " + password);
 
         return ResponseEntity.ok(Map.of(
