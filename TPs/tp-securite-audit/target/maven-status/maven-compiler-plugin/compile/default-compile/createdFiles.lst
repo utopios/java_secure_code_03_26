@@ -1,0 +1,16 @@
+com/example/clinic/controller/PatientController.class
+com/example/clinic/entity/Prescription.class
+com/example/clinic/ClinicApplication.class
+com/example/clinic/config/SecurityConfig.class
+com/example/clinic/service/AuthService.class
+com/example/clinic/repository/DoctorRepository.class
+com/example/clinic/repository/PrescriptionRepository.class
+com/example/clinic/repository/PatientRepository.class
+com/example/clinic/config/DataInitializer.class
+com/example/clinic/service/PatientService.class
+com/example/clinic/entity/Patient.class
+com/example/clinic/controller/PrescriptionController.class
+com/example/clinic/service/PrescriptionService.class
+com/example/clinic/controller/AdminController.class
+com/example/clinic/controller/AuthController.class
+com/example/clinic/entity/Doctor.class

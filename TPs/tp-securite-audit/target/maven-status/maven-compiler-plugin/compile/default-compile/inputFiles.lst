@@ -1,0 +1,16 @@
+/Users/ihababadi/Library/CloudStorage/OneDrive-utopios/supports_markdown/java_secure_code/tp-securite-audit/src/main/java/com/example/clinic/ClinicApplication.java
+/Users/ihababadi/Library/CloudStorage/OneDrive-utopios/supports_markdown/java_secure_code/tp-securite-audit/src/main/java/com/example/clinic/config/DataInitializer.java
+/Users/ihababadi/Library/CloudStorage/OneDrive-utopios/supports_markdown/java_secure_code/tp-securite-audit/src/main/java/com/example/clinic/config/SecurityConfig.java
+/Users/ihababadi/Library/CloudStorage/OneDrive-utopios/supports_markdown/java_secure_code/tp-securite-audit/src/main/java/com/example/clinic/controller/AdminController.java
+/Users/ihababadi/Library/CloudStorage/OneDrive-utopios/supports_markdown/java_secure_code/tp-securite-audit/src/main/java/com/example/clinic/controller/AuthController.java
+/Users/ihababadi/Library/CloudStorage/OneDrive-utopios/supports_markdown/java_secure_code/tp-securite-audit/src/main/java/com/example/clinic/controller/PatientController.java
+/Users/ihababadi/Library/CloudStorage/OneDrive-utopios/supports_markdown/java_secure_code/tp-securite-audit/src/main/java/com/example/clinic/controller/PrescriptionController.java
+/Users/ihababadi/Library/CloudStorage/OneDrive-utopios/supports_markdown/java_secure_code/tp-securite-audit/src/main/java/com/example/clinic/entity/Doctor.java
+/Users/ihababadi/Library/CloudStorage/OneDrive-utopios/supports_markdown/java_secure_code/tp-securite-audit/src/main/java/com/example/clinic/entity/Patient.java
+/Users/ihababadi/Library/CloudStorage/OneDrive-utopios/supports_markdown/java_secure_code/tp-securite-audit/src/main/java/com/example/clinic/entity/Prescription.java
+/Users/ihababadi/Library/CloudStorage/OneDrive-utopios/supports_markdown/java_secure_code/tp-securite-audit/src/main/java/com/example/clinic/repository/DoctorRepository.java
+/Users/ihababadi/Library/CloudStorage/OneDrive-utopios/supports_markdown/java_secure_code/tp-securite-audit/src/main/java/com/example/clinic/repository/PatientRepository.java
+/Users/ihababadi/Library/CloudStorage/OneDrive-utopios/supports_markdown/java_secure_code/tp-securite-audit/src/main/java/com/example/clinic/repository/PrescriptionRepository.java
+/Users/ihababadi/Library/CloudStorage/OneDrive-utopios/supports_markdown/java_secure_code/tp-securite-audit/src/main/java/com/example/clinic/service/AuthService.java
+/Users/ihababadi/Library/CloudStorage/OneDrive-utopios/supports_markdown/java_secure_code/tp-securite-audit/src/main/java/com/example/clinic/service/PatientService.java
+/Users/ihababadi/Library/CloudStorage/OneDrive-utopios/supports_markdown/java_secure_code/tp-securite-audit/src/main/java/com/example/clinic/service/PrescriptionService.java
