@@ -137,6 +137,26 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>12.1.0</version>
+                <configuration>
+                    <!-- Score CVSS minimum pour faire echouer le build -->
+                    <!-- Echelle CVSS : 0 (rien) a 10 (critique) -->
+                    <!-- failBuildOnCVSS = 7 : echoue si une vuln >= HIGH -->
+                    <failBuildOnCVSS>7</failBuildOnCVSS>
+                    <!--suppress UnresolvedMavenProperty -->
+                    <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
+
+                    <!-- Formats de rapport generes -->
+                    <formats>
+                        <format>HTML</format>
+                        <format>JSON</format>
+                    </formats>
+                </configuration>
+            </plugin>
+
             <!-- OWASP Dependency-Check : les stagiaires ajouteront la configuration -->
         </plugins>
     </build>
