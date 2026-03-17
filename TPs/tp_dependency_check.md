@@ -16,7 +16,7 @@ Ce TP couvre une competence essentielle du developpeur securise : **la gestion d
    - Recevoir la cle par email
 
 2. **Ajouter le plugin OWASP Dependency-Check** dans le `pom.xml` de `vulnerable-app/` :
-   - Plugin : `org.owasp:dependency-check-maven` version `10.0.4`
+   - Plugin : `org.owasp:dependency-check-maven` version `12.1.0`
    - Configurer :
      - La cle API NVD (via variable d'environnement `NVD_API_KEY`)
      - Le seuil d'echec du build : `failBuildOnCVSS` = **7** (HIGH et CRITICAL)
