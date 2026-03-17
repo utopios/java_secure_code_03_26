@@ -1,0 +1,5 @@
+com/example/vulnerableapp/VulnerableAppApplication.class
+com/example/vulnerableapp/dto/ProductRequest.class
+com/example/vulnerableapp/service/ProductService.class
+com/example/vulnerableapp/controller/ProductController.class
+com/example/vulnerableapp/config/SecurityConfig.class

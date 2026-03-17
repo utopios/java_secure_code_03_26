@@ -57,6 +57,25 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>10.0.4</version>
+                <configuration>
+                    <!-- Score CVSS minimum pour faire echouer le build -->
+                    <!-- Echelle CVSS : 0 (rien) a 10 (critique) -->
+                    <!-- failBuildOnCVSS = 7 : echoue si une vuln >= HIGH -->
+                    <failBuildOnCVSS>7</failBuildOnCVSS>
+                    <!--suppress UnresolvedMavenProperty -->
+                    <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
+                    <!-- Formats de rapport generes -->
+                    <formats>
+                        <format>HTML</format>
+                        <format>JSON</format>
+                    </formats>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
