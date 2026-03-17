@@ -13,22 +13,56 @@ import java.util.Random;
 
 public class InsecureCrypto {
 
-    public byte[] encrypt(String data) throws Exception {
+    // public byte[] encrypt(String data) throws Exception {
         
-        KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-        keyGen.init(128);
-        SecretKey key = keyGen.generateKey();
+    //     //ERREUR 1 Taille de clé 128 il faut 256
+    //     KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+    //     keyGen.init(128);
+    //     SecretKey key = keyGen.generateKey();
 
-        Cipher cipher = Cipher.getInstance("AES");
-        cipher.init(Cipher.ENCRYPT_MODE, key);
+    //     //Erreur 2 AES, ECB
+    //     Cipher cipher = Cipher.getInstance("AES");
+    //     cipher.init(Cipher.ENCRYPT_MODE, key);
 
-        byte[] iv = new byte[12];
-        new Random().nextBytes(iv);
+    //     byte[] iv = new byte[12];
+    //     //Erreur 3, Utiliser le SecureRandom au lieu du Random
+    //     new Random().nextBytes(iv);
+
+
+    //     //Erreur 4 IV Absent
+    //     byte[] encrypted = cipher.doFinal(data.getBytes());
+        
+    //     //Erreur 5 La clé est dans les logs
+    //     System.out.println("Cle utilisee : " + java.util.Base64.getEncoder().encodeToString(key.getEncoded()));
+
+    //     return encrypted;
+    // }
+
+    private static final int AES_KEY_SIZE = 256;         // Correction erreur 1
+    private static final int GCM_IV_LENGTH = 12;
+    private static final int GCM_TAG_LENGTH = 128;
+
+    public byte[] encrypt(String data, SecretKey key) throws Exception {
+        // Correction erreur 3 : SecureRandom au lieu de Random
+        byte[] iv = new byte[GCM_IV_LENGTH];
+        new SecureRandom().nextBytes(iv);
+
+        // Correction erreur 2 : AES/GCM/NoPadding au lieu de "AES"
+        GCMParameterSpec gcmSpec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        cipher.init(Cipher.ENCRYPT_MODE, key, gcmSpec);
 
         byte[] encrypted = cipher.doFinal(data.getBytes());
-        System.out.println("Cle utilisee : " + java.util.Base64.getEncoder().encodeToString(key.getEncoded()));
 
-        return encrypted;
+        // Correction erreur 4 : PAS de log de la cle
+        // (on peut loguer l'operation, mais JAMAIS la cle)
+
+        // Correction erreur 5 : concatener IV + ciphertext
+        byte[] result = new byte[iv.length + encrypted.length];
+        System.arraycopy(iv, 0, result, 0, iv.length);
+        System.arraycopy(encrypted, 0, result, iv.length, encrypted.length);
+
+        return result;
     }
 }
 ```
