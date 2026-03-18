@@ -123,3 +123,30 @@ public void editUser(String username, String newPassword, Role newRole) {
 
 // Vérification de rôle (temporairement désactivée)
 // if(!user.haseRole(Role.ADMIN)) throw new AccessDeniedException("Admin role required");
+
+abstract class User {
+    public abstract boolean hasRole(Role role);
+    public abstract String getUsername();
+}
+
+class AdminUser extends User {
+    @Override
+    public boolean hasRole(Role role) {
+        return role == Role.ADMIN;
+    }
+    @Override
+    public String getUsername() {
+        return "admin";
+    }
+}
+
+class RegularUser extends User {
+    @Override
+    public boolean hasRole(Role role) {
+        throw new UnsupportedOperationException("Regular users do not have roles");
+    }
+    @Override
+    public String getUsername() {
+        return "user";
+    }
+}
